@@ -262,7 +262,7 @@ def tensor_reduce(
         a_strides: Strides,
         reduce_dim: int,
     ) -> None:
-        offset = np.prod(out_shape[reduce_dim:])
+        offset = a_strides[reduce_dim]
         for pos in prange(out.size):
             initial_index = np.zeros_like(out_shape)
             to_index(pos, out_shape, initial_index)
