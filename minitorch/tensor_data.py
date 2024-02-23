@@ -58,35 +58,25 @@ def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
         out_index : return index corresponding to position.
 
     """
-    # (2, 5)
-    # 0 -> (0, 0)
-    # 1 -> (0, 1)
-    # 2 -> (0, 2)
-    # 3 -> (0, 3)
-    # 4 -> (0, 4)
-    # 5 -> (1, 0)
-    # 6 -> (1, 1)
-    # 7 -> (1, 2)
-    # 8 -> (1, 3)
-    # 9 -> (1, 4)
-
-    # 7 % 5 = 2 --- 7 // 5 = 1
-
-    # (2, 5)
-
-    # (7 // 5) // 2
-
-    def floor_divide_accumulate(in_shape: Shape) -> Shape:
-        out_shape = np.empty(len(in_shape), dtype=np.int64)
-        out_shape[0] = in_shape[0]
-        t = in_shape[0]
-        for i in range(1, len(in_shape)):
-            t = np.floor_divide(t, in_shape[i])
-            out_shape[i] = t
-        return out_shape
+    # def floor_divide_accumulate(in_shape: Shape) -> Shape:
+    #     out_shape = np.empty(len(in_shape), dtype=np.int64)
+    #     out_shape[0] = in_shape[0]
+    #     t = in_shape[0]
+    #     for i in range(1, len(in_shape)):
+    #         t = np.floor_divide(t, in_shape[i])
+    #         out_shape[i] = t
+    #     return out_shape
 
 
-    vals = floor_divide_accumulate(np.append(shape, ordinal)[::-1])
+    # vals = floor_divide_accumulate(np.append(shape, ordinal)[::-1])
+    dims = len(shape)
+    vals = np.empty(dims + 1, dtype=np.int64)
+    vals[0] = ordinal
+    t = ordinal
+    for i in range(1, dims + 1):
+        t = np.floor_divide(t, shape[dims - i])
+        vals[i] = t
+
     elems = shape.shape[0]
     for i in range(elems):
         idx = elems - 1 - i
