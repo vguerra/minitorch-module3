@@ -156,7 +156,6 @@ def tensor_map(
 
         if i < out_size:
             to_index(i, out_shape, out_index)
-            broadcast_index()
             broadcast_index(out_index, out_shape, in_shape, in_index)
             in_position = index_to_position(in_index, in_strides)
             out_position = index_to_position(out_index, out_strides)
