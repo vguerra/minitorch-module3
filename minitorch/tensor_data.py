@@ -6,6 +6,7 @@ from typing import Iterable, Optional, Sequence, Tuple, Union
 import numba
 import numpy as np
 import numpy.typing as npt
+from operator import floordiv
 from numpy import array, float64
 from typing_extensions import TypeAlias
 
@@ -63,7 +64,8 @@ def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
     for i in range(dims):
         idx = dims - 1 - i
         out_index[idx] = t % shape[idx]
-        t = np.floor_divide(t, shape[idx])
+        # t = np.floor_divide(t, shape[idx])
+        t = floordiv(t, shape[idx])
 
 
 def broadcast_index(
