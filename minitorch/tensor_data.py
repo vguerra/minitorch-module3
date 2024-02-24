@@ -58,29 +58,12 @@ def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
         out_index : return index corresponding to position.
 
     """
-    # def floor_divide_accumulate(in_shape: Shape) -> Shape:
-    #     out_shape = np.empty(len(in_shape), dtype=np.int64)
-    #     out_shape[0] = in_shape[0]
-    #     t = in_shape[0]
-    #     for i in range(1, len(in_shape)):
-    #         t = np.floor_divide(t, in_shape[i])
-    #         out_shape[i] = t
-    #     return out_shape
-
-
-    # vals = floor_divide_accumulate(np.append(shape, ordinal)[::-1])
-    dims = len(shape)
-    vals = np.empty(dims + 1, dtype=np.int64)
-    vals[0] = ordinal
+    dims = shape.shape[0]
     t = ordinal
-    for i in range(1, dims + 1):
-        t = np.floor_divide(t, shape[dims - i])
-        vals[i] = t
-
-    elems = shape.shape[0]
-    for i in range(elems):
-        idx = elems - 1 - i
-        out_index[idx] = vals[i] % shape[idx]
+    for i in range(dims):
+        idx = dims - 1 - i
+        out_index[idx] = t % shape[idx]
+        t = np.floor_divide(t, shape[idx])
 
 
 def broadcast_index(
