@@ -293,8 +293,14 @@ def tensor_reduce(
         out_pos = cuda.blockIdx.x
         pos = cuda.threadIdx.x
 
-        # TODO: Implement for Task 3.3.
-        raise NotImplementedError("Need to implement for Task 3.3")
+        if pos < out_size:
+            to_index(pos, out_shape, out_index)
+            out_pos = index_to_position(out_index, out_strides)
+            initial_a_pos = index_to_position(out_index, a_strides)
+
+            for i in range(a_shape[reduce_dim]):
+                out[out_pos] = fn(out[out_pos],
+                                  a_storage[initial_a_pos + i * a_strides[reduce_dim]])
 
     return cuda.jit()(_reduce)  # type: ignore
 
