@@ -43,7 +43,12 @@ def index_to_position(index: Index, strides: Strides) -> int:
     Returns:
         Position in storage
     """
-    return sum([i * s for (i, s) in zip(index, strides)])
+    # Simplified version sum([i * s for (i, s) in zip(index, strides)])
+    # but wont work on CUDA due to dynamic list creation.
+    pos = 0
+    for i in range(strides.shape[0]):
+        pos += index[i] * strides[i]
+    return pos
 
 
 def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
