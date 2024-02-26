@@ -262,8 +262,13 @@ def sum_practice(a: Tensor) -> TensorData:
     blockspergrid = (size // THREADS_PER_BLOCK) + 1
     out = TensorData([0.0 for i in range(2)], (2,))
     out.to_cuda_()
+    print("sum practice")
+    print("a = ", a)
     print(f"blockspergrid = {blockspergrid}")
     print(f"threadsperblock = {threadsperblock}")
+    print(f"input shape = {a.shape}")
+    print(f"out shape = {out.shape}")
+
     jit_sum_practice[blockspergrid, threadsperblock](
         out.tuple()[0], a._tensor._storage, size
     )
