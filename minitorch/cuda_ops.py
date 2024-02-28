@@ -247,7 +247,7 @@ def _sum_practice(out: Storage, a: Storage, size: int) -> None:
     cuda.syncthreads()
 
     if (i < size):
-        cache[0] = cache[0] + a[i]
+        cache[0] += a[i]
 
     cuda.syncthreads()
     if (pos == 0):
@@ -264,6 +264,7 @@ def sum_practice(a: Tensor) -> TensorData:
     out.to_cuda_()
     print("sum practice")
     print("a = ", a)
+    print("size = ", size)
     print(f"blockspergrid = {blockspergrid}")
     print(f"threadsperblock = {threadsperblock}")
     print(f"input shape = {a.shape}")
@@ -272,6 +273,7 @@ def sum_practice(a: Tensor) -> TensorData:
     jit_sum_practice[blockspergrid, threadsperblock](
         out.tuple()[0], a._tensor._storage, size
     )
+    print(f"out = ", out)
     return out
 
 
