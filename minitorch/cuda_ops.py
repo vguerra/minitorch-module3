@@ -273,7 +273,7 @@ def sum_practice(a: Tensor) -> TensorData:
     jit_sum_practice[blockspergrid, threadsperblock](
         out.tuple()[0], a._tensor._storage, size
     )
-    print(f"out = ", out)
+    print(f"out = ", out._storage)
     return out
 
 
