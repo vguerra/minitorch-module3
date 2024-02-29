@@ -314,7 +314,7 @@ def tensor_reduce(
                                   a_storage[initial_a_pos + i * a_strides[reduce_dim]])
 
         cuda.syncthreads()
-        if pos == 0 and cuda.blockIdx.x < out_size):
+        if pos == 0 and cuda.blockIdx.x < out_size:
             out[cuda.blockIdx.x] = cache[cuda.blockIdx.x]
 
     return cuda.jit()(_reduce)  # type: ignore
