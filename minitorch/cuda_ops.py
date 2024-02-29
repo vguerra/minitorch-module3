@@ -247,7 +247,7 @@ def _sum_practice(out: Storage, a: Storage, size: int) -> None:
     cuda.syncthreads()
 
     if (i < size):
-        cache[cuda.blockIdx.x] += a[i]
+        cuda.atomic.add(cache, cuda.blockIdx.x, a[i])
 
     cuda.syncthreads()
     if (pos == 0 and cuda.blockIdx.x < out.size):
