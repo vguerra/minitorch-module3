@@ -262,18 +262,10 @@ def sum_practice(a: Tensor) -> TensorData:
     blockspergrid = (size // THREADS_PER_BLOCK) + 1
     out = TensorData([0.0 for i in range(2)], (2,))
     out.to_cuda_()
-    print("sum practice")
-    print("a = ", a)
-    print("size = ", size)
-    print(f"blockspergrid = {blockspergrid}")
-    print(f"threadsperblock = {threadsperblock}")
-    print(f"input shape = {a.shape}")
-    print(f"out shape = {out.shape}")
 
     jit_sum_practice[blockspergrid, threadsperblock](
         out.tuple()[0], a._tensor._storage, size
     )
-    print(f"out = ", out._storage)
     return out
 
 
@@ -308,14 +300,22 @@ def tensor_reduce(
         out_pos = cuda.blockIdx.x
         pos = cuda.threadIdx.x
 
+        if pos == 0:
+            cache[out_pos] = reduce_value
+        cuda.syncthreads()
+
         if pos < out_size:
             to_index(pos, out_shape, out_index)
             out_pos = index_to_position(out_index, out_strides)
             initial_a_pos = index_to_position(out_index, a_strides)
 
             for i in range(a_shape[reduce_dim]):
-                out[out_pos] = fn(out[out_pos],
+                cache[out_pos] = fn(cache[out_pos],
                                   a_storage[initial_a_pos + i * a_strides[reduce_dim]])
+
+        cuda.syncthreads()
+        if pos == 0 and cuda.blockIdx.x < out_size):
+            out[cuda.blockIdx.x] = cache[cuda.blockIdx.x]
 
     return cuda.jit()(_reduce)  # type: ignore
 
