@@ -360,8 +360,8 @@ def _mm_practice(out: Storage, a: Storage, b: Storage, size: int) -> None:
     col = cuda.threadIdx.x
 
     if (row == 0 and col == 0):
-        for i in cuda.blockDim.y:
-            for j in cuda.blockDim.x:
+        for i in range(cuda.blockDim.y):
+            for j in range(cuda.blockDim.x):
                 a_shared[i][j] = a[i][j]
                 b_shared[i][j] = b[i][j]
     cuda.syncthreads()
