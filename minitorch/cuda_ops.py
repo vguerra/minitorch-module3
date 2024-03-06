@@ -437,8 +437,21 @@ def _tensor_matrix_multiply(
     #    a) Copy into shared memory for a matrix.
     #    b) Copy into shared memory for b matrix
     #    c) Compute the dot produce for position c[i, j]
-    # TODO: Implement for Task 3.4.
-    raise NotImplementedError("Need to implement for Task 3.4")
+
+
+    a_row_offset = a_strides[-2]
+    b_row_offset = b_strides[-2]
+    if pi == 0 and pj ==0:
+        a_shared[pj, pi] = a_storage[batch * a_batch_stride + pj * a_row_offset + pi]
+        b_shared[pj, pi] = b_storage[batch * b_batch_stride + pj * b_row_offset + pi]
+
+    cuda.syncthreads()
+
+    tmp = numba.float64(0.)
+    for k in range(cuda.blockDim.y):
+        tmp += a_shared[pj, k] * b_shared[k, pi]
+
+    out[batch * out_strides[0] +  j * out_strides[-2] + i] = tmp
 
 
 tensor_matrix_multiply = cuda.jit(_tensor_matrix_multiply)
