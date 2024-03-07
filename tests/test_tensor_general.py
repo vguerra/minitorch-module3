@@ -309,6 +309,14 @@ if numba.cuda.is_available():
             for j in range(32):
                 assert_close(z[i, j], z2._storage[32 * i + j])
 
+    def test_mul_practive_vguerra() -> None:
+        x = minitorch.tensor([[2, 2], [2, 2]], backend=shared["cuda"])
+        y = minitorch.tensor([[2, 2], [2, 2]], backend=shared["cuda"])
+
+        z = x @ y
+
+        print("z = ", z)
+
     @pytest.mark.task3_4
     def test_mul_practice3() -> None:
         "Small real example"
