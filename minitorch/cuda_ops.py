@@ -424,7 +424,7 @@ def _tensor_matrix_multiply(
     a_shared = cuda.shared.array((BLOCK_DIM, BLOCK_DIM), numba.float64)
     b_shared = cuda.shared.array((BLOCK_DIM, BLOCK_DIM), numba.float64)
 
-    # The final position c[i, j]
+    # The final position c[i, j] // equivalent to `i, j = cuda.grid(2)`
     i = cuda.blockIdx.x * cuda.blockDim.x + cuda.threadIdx.x
     j = cuda.blockIdx.y * cuda.blockDim.y + cuda.threadIdx.y
 
@@ -441,14 +441,14 @@ def _tensor_matrix_multiply(
 
     a_row_offset = a_strides[-2]
     b_row_offset = b_strides[-2]
-    if pi == 0 and pj ==0:
-        a_shared[pj, pi] = a_storage[batch * a_batch_stride + pj * a_row_offset + pi]
-        b_shared[pj, pi] = b_storage[batch * b_batch_stride + pj * b_row_offset + pi]
+
+    a_shared[pj, pi] = a_storage[batch * a_batch_stride + pj * a_row_offset + pi]
+    b_shared[pj, pi] = b_storage[batch * b_batch_stride + pj * b_row_offset + pi]
 
     cuda.syncthreads()
 
     tmp = numba.float64(0.)
-    for k in range(cuda.blockDim.y):
+    for k in range(cuda.blockDim.x):
         tmp += a_shared[pj, k] * b_shared[k, pi]
 
     out[batch * out_strides[0] +  j * out_strides[-2] + i] = tmp
