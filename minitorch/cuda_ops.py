@@ -440,6 +440,9 @@ def _tensor_matrix_multiply(
     #    b) Copy into shared memory for b matrix
     #    c) Compute the dot produce for position c[i, j]
 
+    out_pos = batch * out_strides[0] +  j * out_strides[-2] + i
+    if (out_pos > out_size):
+        return
 
     a_row_offset = a_strides[-2]
     b_row_offset = b_strides[-2]
@@ -453,7 +456,7 @@ def _tensor_matrix_multiply(
     for k in range(cuda.blockDim.x):
         tmp += a_shared[pj, k] * b_shared[k, pi]
 
-    out[batch * out_strides[0] +  j * out_strides[-2] + i] = tmp
+    out[out_pos] = tmp
 
 
 tensor_matrix_multiply = cuda.jit(_tensor_matrix_multiply)
