@@ -357,18 +357,18 @@ def _mm_practice(out: Storage, a: Storage, b: Storage, size: int) -> None:
     row = cuda.blockDim.y * cuda.blockIdx.y + cuda.threadIdx.y
     col = cuda.blockDim.x * cuda.blockIdx.x + cuda.threadIdx.x
 
-    if (row == 0 and col == 0):
-        for i in range(cuda.blockDim.y):
-            for j in range(cuda.blockDim.x):
-                a_shared[i, j] = a[i * size + j]
-                b_shared[i, j] = b[i * size + j]
+    if (row < size and col < size):
+        a_shared[row, col] = a[row * size + col]
+        b_shared[row, col] = b[row * size + col]
+
     cuda.syncthreads()
 
-    tmp = numba.float64(0.)
-    for k in range(cuda.blockDim.y):
-        tmp += a_shared[row, k] * b_shared[k, col]
+    if (row < size and col < size):
+        tmp = numba.float64(0.)
+        for k in range(cuda.blockDim.x):
+            tmp += a_shared[row, k] * b_shared[k, col]
 
-    out[row * size + col] = tmp
+        out[row * size + col] = tmp
 
 
 jit_mm_practice = cuda.jit()(_mm_practice)
