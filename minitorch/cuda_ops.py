@@ -446,13 +446,13 @@ def _tensor_matrix_multiply(
     b_row_offset = b_strides[-2]
 
     tmp = numba.float64(0.)
-    for b in range(cuda.gridDim.x):
+    for b in range((BLOCK_DIM + a_shape[-1] - 1) / BLOCK_DIM):
         # all threads work first in loading into shared memory
         # data equivalent to a block size
         a_shared[pj, pi] = numba.float64(0.)
         b_shared[pj, pi] = numba.float64(0.)
-        b_x = cuda.blockDim.x * b + pi
-        b_y = cuda.blockDim.y * b + pj
+        b_x = BLOCK_DIM * b + pi
+        b_y = BLOCK_DIM * b + pj
 
         if pj < a_shape[-2] and b_x < a_shape[-1]:
             a_storage_idx = batch * a_batch_stride + pj * a_row_offset + b_x * a_strides[-1]
