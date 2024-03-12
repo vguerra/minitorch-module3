@@ -440,23 +440,37 @@ def _tensor_matrix_multiply(
     #    b) Copy into shared memory for b matrix
     #    c) Compute the dot produce for position c[i, j]
 
-    out_pos = batch * out_strides[0] +  j * out_strides[-2] + i
-    if (out_pos > out_size):
-        return
+    out_pos = batch * out_strides[0] +  j * out_strides[-2] + i * out_strides[-1]
 
     a_row_offset = a_strides[-2]
     b_row_offset = b_strides[-2]
 
-    a_shared[pj, pi] = a_storage[batch * a_batch_stride + pj * a_row_offset + pi]
-    b_shared[pj, pi] = b_storage[batch * b_batch_stride + pj * b_row_offset + pi]
-
-    cuda.syncthreads()
-
     tmp = numba.float64(0.)
-    for k in range(cuda.blockDim.x):
-        tmp += a_shared[pj, k] * b_shared[k, pi]
+    for b in range(cuda.gridDim.x):
+        # all threads work first in loading into shared memory
+        # data equivalent to a block size
+        a_shared[pj, pi] = numba.float64(0.)
+        b_shared[pj, pi] = numba.float64(0.)
+        b_x = cuda.blockDim.x * b + pi
+        b_y = cuda.blockDim.y * b + pj
 
-    out[out_pos] = tmp
+        if pj < a_shape[-2] and b_x < a_shape[-1]:
+            a_storage_idx = batch * a_batch_stride + pj * a_row_offset + b_x * a_strides[-1]
+            a_shared[pj, pi] = a_storage[a_storage_idx]
+
+        if b_y < b_shape[-2] and pi < b_shape[-1]:
+            b_storage_idx = batch * b_batch_stride + b_y * b_row_offset +  pi * b_strides[-1]
+            b_shared[pj, pi] = b_storage[b_storage_idx]
+
+        cuda.syncthreads()
+
+        for k in range(cuda.blockDim.x):
+            tmp += a_shared[pj, k] * b_shared[k, pi]
+
+        cuda.syncthreads()
+
+    if (out_pos < out_size):
+        out[out_pos] = tmp
 
 
 tensor_matrix_multiply = cuda.jit(_tensor_matrix_multiply)
