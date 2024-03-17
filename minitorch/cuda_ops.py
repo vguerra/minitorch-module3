@@ -440,6 +440,9 @@ def _tensor_matrix_multiply(
     #    b) Copy into shared memory for b matrix
     #    c) Compute the dot produce for position c[i, j]
 
+    # x -> rows
+    # j -> cols
+
     tmp = numba.float64(0.)
 
     common_dim_size = a_shape[2]
