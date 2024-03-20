@@ -445,36 +445,24 @@ def _tensor_matrix_multiply(
 
     tmp = numba.float64(0.)
 
-    common_dim_size = a_shape[2]
-    out_pos = batch * out_strides[0] +  i * out_strides[1] + j * out_strides[2]
-    a_pos = batch * a_batch_stride + i * a_strides[1] + pj * a_strides[2]
-    b_pos = batch * b_batch_stride + pi * b_strides[1] + j * b_strides[2]
-
-    for b in range(0, common_dim_size, BLOCK_DIM):
+    for phase in range((a_shape[2] + BLOCK_DIM - 1) / BLOCK_DIM):
         a_shared[pi, pj] = numba.float64(0.)
         b_shared[pi, pj] = numba.float64(0.)
 
-        # checks to do:
-        # - for a_shared : BLOCK_DIM + pj < cols (common_dim_size)
-        # - for b_shared : BLOCK_DIM + pi < rows (common_dim_size)
-        if (b + pj) < common_dim_size:
-            a_shared[pi, pj] = a_storage[a_pos]
-        if (b + pi) < common_dim_size:
-            b_shared[pi, pj] = b_storage[b_pos]
+        if (i < a_shape[1]) and (phase * BLOCK_DIM + pj) < a_shape[2]:
+            a_shared[pi, pj] = a_storage[batch * a_batch_stride + i * a_strides[1] + (phase * BLOCK_DIM + pj)]
+        if (phase * BLOCK_DIM + pi) < b_shape[1] and (j < b_shape[2]):
+            b_shared[pi, pj] = b_storage[batch * b_batch_stride + (phase * BLOCK_DIM + pi) * b_strides[1] + j]
 
         cuda.syncthreads()
 
-        if (out_pos < out_size):
-            for k in range(BLOCK_DIM):
-                tmp += a_shared[pi, k] * b_shared[k, pj]
-
-        a_pos += BLOCK_DIM * a_strides[2]
-        b_pos += BLOCK_DIM * b_strides[1]
+        for k in range(BLOCK_DIM):
+            tmp += a_shared[pi, k] * b_shared[k, pj]
 
         cuda.syncthreads()
 
-    if (out_pos < out_size):
-        out[out_pos] = tmp
+    if (i < out_shape[1] and j < out_shape[2]):
+        out[batch * out_strides[0] +  i * out_strides[1] + j * out_strides[2]] = tmp
 
 
 tensor_matrix_multiply = cuda.jit(_tensor_matrix_multiply)
