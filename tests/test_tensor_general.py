@@ -84,98 +84,6 @@ def test_two_args(
     for ind in t3._tensor.indices():
         assert_close(t3[ind], base_fn(t1[ind], t2[ind]))
 
-def test_vguerra_1() -> None:
-    t1 = minitorch.tensor([[[[1.000000000, 2.000000000]]],
-                            [[[3.000000000, 4.000000000]]],
-                            [[[5.000000000, 6.000000000]]]], backend=shared["fast"])
-
-    # t1 = torch.tensor([[[[1.000000000, 2.000000000]]],
-    #                     [[[3.000000000, 4.000000000]]],
-    #                     [[[5.000000000, 6.000000000]]]])
-    # t1.sum(0) = tensor([[[ 9., 12.]]])
-
-
-    def fn(a: minitorch.Tensor) -> minitorch.Tensor:
-        return a.sum(dim=0)
-
-    a = fn(t1)
-
-    print(a)
-    print(t1.size, a.size)
-    print(t1.shape, a.shape)
-
-
-
-def test_vguerra() -> None:
-    def _grad_central_difference(
-    f: Callable, *vals: Tensor, arg: int = 0, epsilon: float = 1e-6, ind: minitorch.UserIndex
-    ) -> float:
-        x = vals[arg]
-        up = minitorch.zeros(x.shape)
-        up[ind] = epsilon
-        vals1 = [x if j != arg else x + up for j, x in enumerate(vals)]
-        vals2 = [x if j != arg else x - up for j, x in enumerate(vals)]
-        a = f(*vals1)
-        b = f(*vals2)
-        a_sum = a.sum()
-        b_sum = b.sum()
-        delta: Tensor = a_sum - b_sum
-
-        print("\n grad central difference")
-        print("vals = ", vals1, vals2)
-        print("apply f = ", a, b)
-        print("the sums = ", a_sum, b_sum)
-        print("delta = ", delta)
-        print("delta shape = ", delta.shape)
-        return delta[0] / (2.0 * epsilon)
-
-    # import
-    def fn(a: minitorch.Tensor) -> minitorch.Tensor:
-        return a.mean(0)
-
-    t1 = minitorch.tensor([
-           	[
-           		[
-           			[-100.000000000, -0.000000000],
-           			[-0.500000000, -0.000000119],
-           			[-1.100000000, 0.000000000]],
-           		[
-           			[0.000000000, 100.000000000],
-           			[-100.000000000, 0.000000000],
-           			[-0.000000119, -0.000000000]]],
-           	[
-           		[
-           			[-88.042740233, 0.000010000],
-           			[-0.000000000, -0.000000000],
-           			[0.500000000, 100.000000000]],
-           		[
-           			[-0.000000119, -0.333333333],
-           			[0.333333333, 0.000000000],
-           			[-31.032404750, 0.000000119]]],
-           	[
-           		[
-           			[-0.000000199, 0.000000000],
-           			[-1.900000000, -0.000000000],
-           			[0.000000000, -87.135485295]],
-           		[
-           			[0.333333333, 1.900000000],
-           			[-0.000000060, -0.000000000],
-           			[100.000000000, 0.000000000]]]],
-                           backend=shared["fast"])
-
-    t1.requires_grad_(True)
-    t1.zero_grad_()
-    random.seed(10)
-    out = fn(t1)
-    out.sum().backward()
-
-    ind = t1._tensor.sample()
-    check = _grad_central_difference(fn, t1, arg=0, ind=ind)
-    assert t1.grad is not None
-    print("t1 = ", t1)
-    print("index = ", ind)
-    print("grad = ", t1.grad)
-    print(f"grad({t1.grad[ind]}) == check({check})")
 
 @given(data())
 @pytest.mark.parametrize("fn", one_arg)
@@ -309,13 +217,6 @@ if numba.cuda.is_available():
             for j in range(32):
                 assert_close(z[i, j], z2._storage[32 * i + j])
 
-    def test_mul_practive_vguerra() -> None:
-        x = minitorch.tensor([[2, 2], [2, 2]], backend=shared["cuda"])
-        y = minitorch.tensor([[2, 2], [2, 2]], backend=shared["cuda"])
-
-        z = x @ y
-
-        print("z = ", z)
 
     @pytest.mark.task3_4
     def test_mul_practice3() -> None:
@@ -456,11 +357,6 @@ def test_mm2() -> None:
 # ## Task 3.2 and 3.4
 
 # Matrix Multiplication
-
-def test_vguerra_3() -> None:
-    a = minitorch.tensor([[[0., 0.],[0., 0.]],[[0., 0.],[0., 1.]]], backend=shared["fast"]).permute(0, 2, 1)
-    b = minitorch.tensor([[[0., 0.],[0., 1.]]], backend=shared["fast"])
-    c = a @ b
 
 @given(data())
 @pytest.mark.parametrize("backend", matmul_tests)

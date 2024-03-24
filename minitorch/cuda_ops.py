@@ -450,9 +450,9 @@ def _tensor_matrix_multiply(
         b_shared[pi, pj] = numba.float64(0.)
 
         if (i < a_shape[1]) and (phase * BLOCK_DIM + pj) < a_shape[2]:
-            a_shared[pi, pj] = a_storage[batch * a_batch_stride + i * a_strides[1] + (phase * BLOCK_DIM + pj)]
+            a_shared[pi, pj] = a_storage[batch * a_batch_stride + i * a_strides[1] + (phase * BLOCK_DIM + pj) * a_strides[2]]
         if (phase * BLOCK_DIM + pi) < b_shape[1] and (j < b_shape[2]):
-            b_shared[pi, pj] = b_storage[batch * b_batch_stride + (phase * BLOCK_DIM + pi) * b_strides[1] + j]
+            b_shared[pi, pj] = b_storage[batch * b_batch_stride + (phase * BLOCK_DIM + pi) * b_strides[1] + j * b_strides[2]]
 
         cuda.syncthreads()
 
