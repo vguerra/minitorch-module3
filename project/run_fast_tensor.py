@@ -29,7 +29,8 @@ class Network(minitorch.Module):
         self.layer3 = Linear(hidden, 1, backend)
 
     def forward(self, x):
-        return self.layer3(self.layer2(self.layer1(x)))
+        logits: minitorch.Tensor = self.layer3(self.layer2(self.layer1(x)))
+        return logits.sigmoid()
 
 
 class Linear(minitorch.Module):
@@ -42,7 +43,7 @@ class Linear(minitorch.Module):
         self.out_size = out_size
 
     def forward(self, x):
-        return self.weights @ x + self.bias
+        return x @ self.weights.value + self.bias.value
 
 
 class FastTrain:
