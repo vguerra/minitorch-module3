@@ -7,6 +7,7 @@ import minitorch
 
 datasets = minitorch.datasets
 FastTensorBackend = minitorch.TensorBackend(minitorch.FastOps)
+
 if numba.cuda.is_available():
     GPUBackend = minitorch.TensorBackend(minitorch.CudaOps)
 
@@ -30,8 +31,9 @@ class Network(minitorch.Module):
         self.layer3 = Linear(hidden, 1, backend)
 
     def forward(self, x):
-        logits: minitorch.Tensor = self.layer3(self.layer2(self.layer1(x)))
-        return logits.sigmoid()
+        t = self.layer1(x).relu()
+        t = self.layer2(t).relu()
+        return self.layer3(t).sigmoid()
 
 
 class Linear(minitorch.Module):
